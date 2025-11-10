@@ -6,8 +6,8 @@ import requests
 import base64
 
 app = Flask(__name__)
-JARVIS_DIR = "/home/connor/JARVIS-Core"
-PIPER_BIN = f"{JARVIS_DIR}/../piper/piper/piper"
+JARVIS_DIR = "/app"  # Railway uses /app
+PIPER_BIN = f"{JARVIS_DIR}/piper/piper"
 MODEL = f"{JARVIS_DIR}/en_GB-alan-medium.onnx"
 
 def speak(text):
@@ -19,7 +19,8 @@ def speak(text):
         with open(f"{JARVIS_DIR}/temp.wav", "rb") as f:
             audio = base64.b64encode(f.read()).decode()
         return audio
-    except:
+    except Exception as e:
+        print(f"TTS Error: {e}")
         return None
 
 def ask_llama(question):
@@ -35,7 +36,8 @@ def ask_llama(question):
             timeout=10
         )
         return response.json().get("response", "I don't know, sir.").strip()
-    except:
+    except Exception as e:
+        print(f"LLM Error: {e}")
         return "I'm having trouble thinking, sir."
 
 @app.route('/')
@@ -112,5 +114,5 @@ def ask():
     })
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5001))
+    port = int(os.getenv("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
