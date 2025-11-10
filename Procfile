@@ -1,1 +1,1 @@
-web: gunicorn jarvis_web:app
+web: gunicorn jarvis_web:app --bind 0.0.0.0:$PORT
