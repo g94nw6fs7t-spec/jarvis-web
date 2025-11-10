@@ -19,8 +19,7 @@ def speak(text):
         with open(f"{JARVIS_DIR}/temp.wav", "rb") as f:
             audio = base64.b64encode(f.read()).decode()
         return audio
-    except Exception as e:
-        print(f"TTS Error: {e}")
+    except:
         return None
 
 def ask_llama(question):
@@ -29,15 +28,14 @@ def ask_llama(question):
             "http://localhost:11434/api/generate",
             json={
                 "model": "llama3.2:1b",
-                "prompt": f"You are JARVIS, a witty British AI. Answer in 1 sentence: {question}",
+                "prompt": f"You are JARVIS, a witty British AI. Answer: {question}",
                 "stream": False,
                 "options": {"temperature": 0.7}
             },
             timeout=10
         )
         return response.json().get("response", "I don't know, sir.").strip()
-    except Exception as e:
-        print(f"LLM Error: {e}")
+    except:
         return "I'm having trouble thinking, sir."
 
 @app.route('/')
@@ -103,8 +101,6 @@ def ask():
         answer = f"The time is {datetime.datetime.now().strftime('%I:%M %p')}, sir."
     elif 'date' in question:
         answer = f"Today is {datetime.datetime.now().strftime('%B %d, %Y')}, sir."
-    elif 'capital of tokyo' in question:
-        answer = "Tokyo is the capital of Japan, sir."
     else:
         answer = ask_llama(question)
     
@@ -116,4 +112,5 @@ def ask():
     })
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=os.getenv("PORT", 5001))
+    port = int(os.getenv("PORT", 5001))
+    app.run(host='0.0.0.0', port=port)
