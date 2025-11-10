@@ -1,27 +1,9 @@
 from flask import Flask, render_template_string, request, jsonify
-import subprocess
 import os
 import datetime
 import requests
-import base64
 
 app = Flask(__name__)
-JARVIS_DIR = "/home/connor/JARVIS-Core"
-PIPER_BIN = f"{JARVIS_DIR}/../piper/piper/piper"
-MODEL = f"{JARVIS_DIR}/en_GB-alan-medium.onnx"
-
-def speak(text):
-    try:
-        subprocess.run(
-            [PIPER_BIN, "--model", MODEL, "--output_file", f"{JARVIS_DIR}/temp.wav"],
-            input=text.encode(), check=True, stdout=subprocess.DEVNULL
-        )
-        with open(f"{JARVIS_DIR}/temp.wav", "rb") as f:
-            audio = base64.b64encode(f.read()).decode()
-        return audio
-    except Exception as e:
-        print(f"TTS Error: {e}")
-        return None
 
 def ask_llama(question):
     try:
@@ -82,10 +64,10 @@ def index():
             .then(r => r.json())
             .then(d => {
                 document.getElementById('output').innerHTML += `<br><strong>JARVIS:</strong> ${d.answer}`;
-                if (d.audio) {
-                    const audio = new Audio('data:audio/wav;base64,' + d.audio);
-                    audio.play();
-                }
+                const utter = new SpeechSynthesisUtterance(d.answer);
+                utter.lang = 'en-GB';
+                utter.rate = 0.9;
+                window.speechSynthesis.speak(utter);
             });
         };
     </script>
@@ -105,13 +87,8 @@ def ask():
     else:
         answer = ask_llama(question)
     
-    audio = speak(answer)
-    
-    return jsonify({
-        "answer": answer,
-        "audio": audio
-    })
+    return jsonify({"answer": answer})
 
 if __name__ == '__main__':
-    port = int(os.getenv("PORT", 5001))
+    port = int(os.getenv("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
